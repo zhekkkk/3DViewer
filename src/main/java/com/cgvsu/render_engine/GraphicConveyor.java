@@ -1,4 +1,6 @@
 package com.cgvsu.render_engine;
+import com.cgvsu.render_engine.triangle_rasterization.MyPoint2D;
+
 import javax.vecmath.*;
 
 public class GraphicConveyor {
@@ -60,7 +62,7 @@ public class GraphicConveyor {
         return new Vector3f(x / w, y / w, z / w);
     }
 
-    public static Point2f vertexToPoint(final Vector3f vertex, final int width, final int height) {
-        return new Point2f(vertex.x * width + width / 2.0F, -vertex.y * height + height / 2.0F);
+    public static MyPoint2D vertexToPoint(final Vector3f vertex, final int width, final int height) {
+        return new MyPoint2D(vertex.x * width + width / 2.0F, -vertex.y * height + height / 2.0F);
     }
 }
