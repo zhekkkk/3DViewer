@@ -17,6 +17,12 @@ public class Vector3f {
         this.z = z2 - z1;
     }
 
+    public Vector3f(Vector3f vertex1, Vector3f vertex2) {
+        this.x = vertex2.getX() - vertex1.getX();
+        this.y = vertex2.getY() - vertex1.getY();
+        this.z = vertex2.getZ() - vertex1.getZ();
+    }
+
     public boolean equals(Vector3f other) {
         // todo: желательно, чтобы это была глобальная константа
         final float eps = 1e-4f;

@@ -52,7 +52,7 @@ public class ObjReader {
 			}
 		}
 		result.polygons = ModelUtils.triangulatePolygons(result.polygons);
-		ModelUtils.recalculateNormals(result);
+		//ModelUtils.recalculateNormals(result);
 		return result;
 	}
 

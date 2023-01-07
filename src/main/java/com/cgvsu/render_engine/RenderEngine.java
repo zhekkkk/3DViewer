@@ -60,11 +60,16 @@ public class RenderEngine {
 
             ArrayList<Vector2f> resultPoints = new ArrayList<>();
             ArrayList<Vector2f> textureVertices = new ArrayList<>();
+            ArrayList<Vector3f> normals = new ArrayList<>();
             ArrayList<Float> z_coordinates = new ArrayList<>();
             Vector3f polygonNormal = new Vector3f(0,0,0);
 
             for (int vertexInPolygonInd = 0; vertexInPolygonInd < nVerticesInPolygon; ++vertexInPolygonInd) {
                 Vector3f vertex = mesh.vertices.get(mesh.polygons.get(polygonInd).getVertexIndices().get(vertexInPolygonInd));
+                //int index = mesh.polygons.get(polygonInd).getNormalIndices().get(vertexInPolygonInd);
+                //Vector3f normal = mesh.normals.get(index);
+
+                //normals.add(normal);
 
                 if(mesh.textureVertices.size() != 0) {
                     Vector2f textureVertex = mesh.textureVertices.get(mesh.polygons.get(polygonInd).getTextureVertexIndices().get(vertexInPolygonInd));
@@ -96,7 +101,7 @@ public class RenderEngine {
                 Vector3f position = new Vector3f(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
                 Vector3f target = new Vector3f(camera.getTarget().x, camera.getTarget().y, camera.getTarget().z);
                 try {
-                    BufferedImage texture = ImageIO.read(new File("VMaskCol.jpg"));
+                    BufferedImage texture = ImageIO.read(new File("aaaaa.jpg"));
                     texturePolygon(graphicsUtils, resultPoints, textureVertices, texture, z_buffer, position, target, z_coordinates, polygonNormal);
                 } catch (IOException e) {
                     System.out.println(e);
@@ -225,6 +230,7 @@ public class RenderEngine {
         fillPolygon(gr, resultPoints, color, z_buffer, position, z_coordinates, shadowIndex);
     }
 
+
     private static void drawPolygon(final GraphicsContext graphicsContext, ArrayList<Vector2f> resultPoints, final int nVerticesInPolygon) {
         for (int vertexInPolygonInd = 1; vertexInPolygonInd < nVerticesInPolygon; ++vertexInPolygonInd) {
             graphicsContext.strokeLine(
@@ -273,13 +279,13 @@ public class RenderEngine {
         for (int y = (int) Math.round(y1 + 0.5); y <= y2; y++) {
             double startX = getX(y, x1, x2, y1, y2);
             double endX = getX(y, x1, x3, y1, y3);
-            fillLine(gr, y, startX, endX, color, z_buffer, position.getZ(), x1, x2, x3, y1, y2, y3, z1, z2, z3, shadowIndex);
+            fillLine(gr, y, startX, endX, color, z_buffer, position, x1, x2, x3, y1, y2, y3, z1, z2, z3, shadowIndex);
         }
 
         for (int y = (int) Math.round(y2 + 0.5); y < y3; y++) {
             double startX = getX(y, x1, x3, y1, y3);
             double endX = getX(y, x2, x3, y2, y3);
-            fillLine(gr, y, startX, endX, color, z_buffer, position.getZ(), x1, x2, x3, y1, y2, y3, z1, z2, z3, shadowIndex);
+            fillLine(gr, y, startX, endX, color, z_buffer, position, x1, x2, x3, y1, y2, y3, z1, z2, z3, shadowIndex);
         }
     }
 
@@ -288,7 +294,7 @@ public class RenderEngine {
     }
 
     private static void fillLine(
-            final GraphicsUtils gr, int y, double startX, double endX, Color color, float[][] z_buffer, float pos,
+            final GraphicsUtils gr, int y, double startX, double endX, Color color, float[][] z_buffer, Vector3f position,
             float x1, float x2, float x3, float y1, float y2, float y3, float z1, float z2, float z3, float shadowIndex) {
 
         if (Double.compare(startX, endX) > 0) {
@@ -303,11 +309,108 @@ public class RenderEngine {
         double blue = color.getBlue() * colorShift;
         for (int x = (int) Math.round(startX + 0.5); x < endX; x++) {
             if(x >= 0 && y >= 0) {
-                if (Math.abs(pos - findDepth(x, y, x1, x2, x3, y1, y2, y3, z1, z2, z3)) < z_buffer[Math.abs(y)][Math.abs(x)]) {
+                Vector3f currentPoint = new Vector3f(x, y, findDepth(x, y, x1, x2, x3, y1, y2, y3, z1, z2, z3));
+                Vector3f vec = new Vector3f(position, currentPoint);
+                float length = Vector3f.length(vec);
+                /*if (Math.abs(pos - findDepth(x, y, x1, x2, x3, y1, y2, y3, z1, z2, z3)) < z_buffer[Math.abs(y)][Math.abs(x)]) {
                     gr.setPixel(x, y, new Color(red, green, blue, 1));
                     z_buffer[Math.abs(y)][Math.abs(x)] = Math.abs(pos - findDepth(x, y, x1, x2, x3, y1, y2, y3, z1, z2, z3));
+                }*/
+                if(length < z_buffer[y][x]) {
+                    gr.setPixel(x, y, new Color(red, green, blue, 1));
+                    z_buffer[y][x] = length;
                 }
             }
         }
     }
+
+    /*private static void fillPolygonWithLight(
+            final GraphicsUtils gr,
+            ArrayList<Vector2f> resultPoints,
+            Color color, float[][] z_buffer,
+            Vector3f position, Vector3f target,
+            ArrayList<Float> z_coordinates,
+            ArrayList<Vector3f> normals) {
+
+        Vector3f lightDirection = Vector3f.fromTwoPoints(target, position);
+        Vector3f.normalize(lightDirection);
+
+        ArrayList<Vector2f> points = new ArrayList<>();
+        points.add(resultPoints.get(0));
+        points.add(resultPoints.get(1));
+        points.add(resultPoints.get(2));
+
+        points.sort(Comparator.comparing(Vector2f::getY));
+
+        final float x1 = points.get(0).getX();
+        float x2 = points.get(1).getX();
+        float x3 = points.get(2).getX();
+        float y1 = points.get(0).getY();
+        float y2 = points.get(1).getY();
+        float y3 = points.get(2).getY();
+        float z1 = z_coordinates.get(0);
+        float z2 = z_coordinates.get(1);
+        float z3 = z_coordinates.get(2);
+
+        for (int y = (int) Math.round(y1 + 0.5); y <= y2; y++) {
+            double startX = getX(y, x1, x2, y1, y2);
+            double endX = getX(y, x1, x3, y1, y3);
+            fillLineWithLight(gr, y, startX, endX, color, z_buffer, position, x1, x2, x3, y1, y2, y3, z1, z2, z3, normals, lightDirection);
+        }
+
+        for (int y = (int) Math.round(y2 + 0.5); y < y3; y++) {
+            double startX = getX(y, x1, x3, y1, y3);
+            double endX = getX(y, x2, x3, y2, y3);
+            fillLineWithLight(gr, y, startX, endX, color, z_buffer, position, x1, x2, x3, y1, y2, y3, z1, z2, z3, normals, lightDirection);
+        }
+    }
+
+    private static void fillLineWithLight(
+            final GraphicsUtils gr, int y, double startX, double endX, Color color, float[][] z_buffer, Vector3f position,
+            float x1, float x2, float x3, float y1, float y2, float y3, float z1, float z2, float z3, ArrayList<Vector3f> normals, Vector3f lightDirection) {
+
+        if (Double.compare(startX, endX) > 0) {
+            double temp = startX;
+            startX = endX;
+            endX = temp;
+        }
+
+        *//*float colorShift = Math.abs(shadowIndex);
+        double red = color.getRed() * colorShift;
+        double green = color.getGreen() * colorShift;
+        double blue = color.getBlue() * colorShift;*//*
+        for (int x = (int) Math.round(startX + 0.5); x < endX; x++) {
+            Vector3f normal = findNormal(x, y, x1, x2, x3, y1, y2, y3, normals);
+            Vector3f.normalize(normal);
+            float shadowIndex = Vector3f.dotProduct(normal, lightDirection);
+            float colorShift = Math.abs(shadowIndex);
+            double red = color.getRed() * colorShift;
+            double green = color.getGreen() * colorShift;
+            double blue = color.getBlue() * colorShift;
+            if(x >= 0 && y >= 0) {
+                Vector3f currentPoint = new Vector3f(x, y, findDepth(x, y, x1, x2, x3, y1, y2, y3, z1, z2, z3));
+                Vector3f vec = new Vector3f(position, currentPoint);
+                float length = Vector3f.length(vec);
+                *//*if (Math.abs(pos - findDepth(x, y, x1, x2, x3, y1, y2, y3, z1, z2, z3)) < z_buffer[Math.abs(y)][Math.abs(x)]) {
+                    gr.setPixel(x, y, new Color(red, green, blue, 1));
+                    z_buffer[Math.abs(y)][Math.abs(x)] = Math.abs(pos - findDepth(x, y, x1, x2, x3, y1, y2, y3, z1, z2, z3));
+                }*//*
+                if(length < z_buffer[y][x]) {
+                    gr.setPixel(x, y, new Color(red, green, blue, 1));
+                    z_buffer[y][x] = length;
+                }
+            }
+        }
+    }
+
+    private static Vector3f findNormal(float x, float y, float x1, float x2, float x3, float y1, float y2, float y3, ArrayList<Vector3f> normals) {
+        float detT = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
+        float alpha = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / detT;
+        float beta = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / detT;
+        float gamma = 1 - alpha - beta;
+        float resultX = alpha * normals.get(0).getX() + beta * normals.get(1).getX() + gamma * normals.get(2).getX();
+        float resultY = alpha * normals.get(0).getY() + beta * normals.get(1).getY() + gamma * normals.get(2).getY();
+        float resultZ = alpha * normals.get(0).getZ() + beta * normals.get(1).getZ() + gamma * normals.get(2).getZ();
+        return new Vector3f(resultX, resultY, resultZ);
+    }*/
 }
