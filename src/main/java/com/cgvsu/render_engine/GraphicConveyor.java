@@ -62,7 +62,7 @@ public class GraphicConveyor {
         return new Vector3f(x / w, y / w, z / w);
     }
 
-    public static MyPoint2D vertexToPoint(final Vector3f vertex, final int width, final int height) {
-        return new MyPoint2D(vertex.x * width + width / 2.0F, -vertex.y * height + height / 2.0F);
+    public static com.cgvsu.math.Vector2f vertexToPoint(final Vector3f vertex, final int width, final int height) {
+        return new com.cgvsu.math.Vector2f(vertex.x * width + width / 2.0F, -vertex.y * height + height / 2.0F);
     }
 }

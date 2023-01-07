@@ -50,7 +50,7 @@ public class ModelUtils {
         }
     }
 
-    protected static Vector3f calculateNormalForPolygon(final Polygon polygon, final Model model){
+    public static Vector3f calculateNormalForPolygon(final Polygon polygon, final Model model){
 
         ArrayList<Integer> vertexIndices = polygon.getVertexIndices();
         int verticesCount = vertexIndices.size();
